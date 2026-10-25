@@ -8,19 +8,20 @@ import java.net.InetAddress
 import java.net.InetSocketAddress
 
 /**
- * UDP 客户端：监听 Windows 服务端的广播，自动发现 ExtendScreen Server
- *
- * 流程：
- * 1. Windows 端广播 "ExtendScreenServer" 到 255.255.255.255:12345
- * 2. Android 端绑定端口 12345 接收广播
- * 3. 同时 Android 端也广播 "ExtendScreenClient" 到 12346，Windows 端监听
- * 4. 收到广播后，向服务器 12346 端口回传设备信息
+ * UDP Client: Listens for broadcasts from the Windows server to automatically discover ExtendScreen Server
+ * 
+ * Workflow:
+ * 1. Windows side broadcasts "ExtendScreenServer" to 255.255.255.255:12345
+ * 2. Android side binds to port 12345 to receive the broadcast
+ * 3. Simultaneously, the Android side broadcasts "ExtendScreenClient" to 12346, which the Windows side listens to
+ * 4. Upon receiving the broadcast, it sends device information back to the server on port 12346
  */
+
 class DiscoveryClient {
 
     companion object {
         private const val DISCOVERY_PORT = 12345
-        private const val RESPONSE_PORT = 12346   // 回传端口 = DISCOVERY_PORT + 1
+        private const val RESPONSE_PORT = 12346   // Return Port = DISCOVERY_PORT + 1
         private const val BROADCAST_MESSAGE = "ExtendScreenServer"
         private const val CLIENT_BROADCAST = "ExtendScreenClient"
         private const val TAG = "DiscoveryClient"
@@ -36,7 +37,7 @@ class DiscoveryClient {
         isScanning = true
         job = scope.launch(Dispatchers.IO) {
             try {
-                // 绑定到 12345 端口，接收 Windows 的 UDP 广播
+                // Bind to port 12345 to receive UDP broadcasts from Windows
                 val addr = InetSocketAddress(DISCOVERY_PORT)
                 socket = DatagramSocket(null)
                 socket!!.reuseAddress = true
@@ -48,7 +49,7 @@ class DiscoveryClient {
 
                 val buffer = ByteArray(1024)
                 while (isScanning && socket != null) {
-                    // 同时发送客户端广播，让 Windows 端也能发现我们
+                    // Simultaneously send a client broadcast so that the Windows side can also discover us
                     try {
                         val clientBroadcast = CLIENT_BROADCAST.toByteArray()
                         val broadcastAddr = InetAddress.getByName("255.255.255.255")
@@ -72,7 +73,7 @@ class DiscoveryClient {
                             sendDeviceInfo(serverIp)
                         }
                     } catch (e: java.net.SocketTimeoutException) {
-                        // 超时继续等待
+                        // Continue waiting after timeout
                         continue
                     } catch (e: Exception) {
                         if (isScanning) {

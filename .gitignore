@@ -16,14 +16,14 @@ ExtendScreenAndroid/app/release/
 **/obj/
 *.pdb
 
-# === 构建产物 ===
+# === Construction artifacts ===
 output/
 
-# === 临时工具 ===
+# === Temporary tools ===
 IconGen/
 IconGenerator.csx
 
-# === 签名密钥（不要上传） ===
+# === Signing key ===
 *.jks
 *.keystore
 
@@ -41,6 +41,6 @@ Thumbs.db
 .DS_Store
 Desktop.ini
 
-# === 其他 ===
+# === Other ===
 *.log
 *.tmp

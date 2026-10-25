@@ -1,12 +1,12 @@
 namespace ExtendScreenServer.Models;
 
 /// <summary>
-/// 触控输入事件
+/// Touch input event
 /// </summary>
 public class InputEvent
 {
     public InputEventType Type { get; set; }
-    public float X { get; set; }   // 比例坐标 0.0~1.0
+    public float X { get; set; }   // Normalized coordinates 0.0~1.0
     public float Y { get; set; }
     public float DeltaX { get; set; }
     public float DeltaY { get; set; }

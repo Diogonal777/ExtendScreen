@@ -5,7 +5,7 @@ using ExtendScreenServer.Models;
 namespace ExtendScreenServer.Services;
 
 /// <summary>
-/// 网络传输服务 — 发送编码后的视频帧，接收触控输入
+/// Network transport service — sends encoded video frames, receives touch input
 /// </summary>
 public class NetworkServerService : IDisposable
 {
@@ -30,11 +30,11 @@ public class NetworkServerService : IDisposable
         _isRunning = true;
         _cts = new CancellationTokenSource();
 
-        // 只监听输入端口，视频端口由 StreamingService 负责
+        // Only listen on input port, video port is handled by StreamingService
         _inputListener = new TcpListener(IPAddress.Any, _config.InputEventPort);
         _inputListener.Start();
 
-        // 接受输入连接
+        // Accept input connections
         _ = Task.Run(async () =>
         {
             try
@@ -49,7 +49,7 @@ public class NetworkServerService : IDisposable
     }
 
     /// <summary>
-    /// 接收安卓端触控输入
+    /// Receive touch input from Android
     /// </summary>
     private async Task ReceiveInputLoop()
     {
@@ -77,7 +77,7 @@ public class NetworkServerService : IDisposable
     }
 
     /// <summary>
-    /// 模拟触控输入到Windows系统
+    /// Simulate touch input to Windows system
     /// </summary>
     public void InjectInput(InputEvent input)
     {

@@ -8,8 +8,8 @@ import android.util.Log
 import android.widget.ImageView
 
 /**
- * JPEG 解码与渲染器 — 后台线程解码，主线程渲染
- * 使用双缓冲避免闪烁：decodeBitmap 和 displayBitmap 交替使用
+ * JPEG Decoder and Renderer — Decoding performed on a background thread, rendering on the main thread
+ * Use double buffering to prevent flickering: alternating between `decodeBitmap` and `displayBitmap`
  */
 object VideoDecoderRenderer {
 
@@ -31,7 +31,7 @@ object VideoDecoderRenderer {
 
                 mainHandler.post {
                     imageView?.setImageBitmap(bitmap)
-                    // 回收旧 Bitmap（新 Bitmap 已经设置，不会闪烁）
+                    // Recycle the old Bitmap (the new Bitmap has already been set, so there will be no flickering)
                     oldBitmap?.recycle()
                 }
             }

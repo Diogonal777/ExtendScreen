@@ -40,7 +40,7 @@ public partial class MainWindow : Window
 
     private void BackToModeSelect_Click(object sender, RoutedEventArgs e)
     {
-        // 如果在客户端模式，断开客户端
+        // If in client mode, disconnect the client
         _clientWindow?.Disconnect();
         _clientWindow = null;
 
@@ -53,13 +53,13 @@ public partial class MainWindow : Window
         ViewModel.Disconnect();
     }
 
-    // 客户端模式事件
+    // Client-mode events
     private async void ClientConnect_Click(object sender, RoutedEventArgs e)
     {
         var host = ServerIpBox.Text.Trim();
         if (string.IsNullOrEmpty(host))
         {
-            System.Windows.MessageBox.Show("请输入服务端 IP 地址");
+            System.Windows.MessageBox.Show("Please enter the server IP address.");
             return;
         }
 
@@ -67,7 +67,7 @@ public partial class MainWindow : Window
         if (!int.TryParse(ClientInputPortBox.Text.Trim(), out var inputPort)) inputPort = 12347;
 
         ClientConnectBtn.IsEnabled = false;
-        ClientConnectBtn.Content = "连接中...";
+        ClientConnectBtn.Content = "Connecting...";
 
         try
         {
@@ -75,23 +75,23 @@ public partial class MainWindow : Window
             _clientWindow.Disconnected += OnClientDisconnected;
             await _clientWindow.ConnectAsync(host, videoPort, inputPort);
 
-            // 连接成功，更新状态
+            // Connection successful, updating status
             ClientStatusBorder.Visibility = Visibility.Visible;
             ClientDisconnectBtn.Visibility = Visibility.Visible;
             ClientStatusDot.Fill = System.Windows.Media.Brushes.Green;
-            ClientStatusText.Text = $"已连接 {host}";
-            ClientConnectBtn.Content = "已连接";
+            ClientStatusText.Text = $"Connected to {host}";
+            ClientConnectBtn.Content = "Connected";
             ClientConnectBtn.IsEnabled = true;
 
-            // 显示视频窗口
+            // Display the video window
             _clientWindow.Show();
         }
         catch (Exception ex)
         {
-            System.Windows.MessageBox.Show($"连接失败: {ex.Message}");
+            System.Windows.MessageBox.Show($"Connection failed: {ex.Message}");
             _clientWindow = null;
             ClientConnectBtn.IsEnabled = true;
-            ClientConnectBtn.Content = "连接";
+            ClientConnectBtn.Content = "Connect";
         }
     }
 
@@ -100,8 +100,8 @@ public partial class MainWindow : Window
         Dispatcher.Invoke(() =>
         {
             ClientStatusDot.Fill = System.Windows.Media.Brushes.Red;
-            ClientStatusText.Text = "连接已断开";
-            ClientConnectBtn.Content = "连接";
+            ClientStatusText.Text = "Connection lost";
+            ClientConnectBtn.Content = "Connect";
             ClientConnectBtn.IsEnabled = true;
         });
     }
@@ -111,8 +111,8 @@ public partial class MainWindow : Window
         _clientWindow?.Disconnect();
         _clientWindow = null;
         ClientStatusDot.Fill = System.Windows.Media.Brushes.Coral;
-        ClientStatusText.Text = "已断开";
-        ClientConnectBtn.Content = "连接";
+        ClientStatusText.Text = "Disconnected";
+        ClientConnectBtn.Content = "Connect";
         ClientConnectBtn.IsEnabled = true;
     }
 

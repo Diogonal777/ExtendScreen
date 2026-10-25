@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 namespace ExtendScreenServer.Services;
 
 /// <summary>
-/// 虚拟显示器管理服务 — 通过 Parsec VDD 驱动创建/移除虚拟显示器
+/// Virtual display management service — creates/removes virtual displays via Parsec VDD driver
 /// </summary>
 public class VirtualDisplayService : IDisposable
 {
@@ -12,7 +12,7 @@ public class VirtualDisplayService : IDisposable
     private static readonly Guid VddClassGuid = new("4d36e968-e325-11ce-bfc1-08002be10318");
     private const string VDD_HARDWARE_ID = "Root\\Parsec\\VDA";
 
-    // IOCTL 控制码
+    // IOCTL control codes
     private const uint VDD_IOCTL_ADD = 0x0022e004;
     private const uint VDD_IOCTL_REMOVE = 0x0022a008;
     private const uint VDD_IOCTL_UPDATE = 0x0022a00c;
@@ -24,19 +24,19 @@ public class VirtualDisplayService : IDisposable
     private CancellationTokenSource? _keepAliveCts;
     private bool _isInstalled;
 
-    /// <summary>虚拟显示器是否已创建</summary>
+    /// <summary>Whether the virtual display has been created</summary>
     public bool IsVirtualDisplayCreated => _displayIndex >= 0;
 
-    /// <summary>虚拟显示器的屏幕区域</summary>
+    /// <summary>Screen area of the virtual display</summary>
     public System.Drawing.Rectangle VirtualScreenBounds { get; private set; }
 
-    /// <summary>虚拟显示器的设备名（如 \\.\DISPLAY2）</summary>
+    /// <summary>Device name of the virtual display (e.g. \\.\DISPLAY2)</summary>
     public string? VirtualDeviceName { get; private set; }
 
-    /// <summary>驱动是否已安装</summary>
+    /// <summary>Whether the driver is installed</summary>
     public bool IsDriverInstalled => _isInstalled;
 
-    /// <summary>最后一次错误信息</summary>
+    /// <summary>Last error message</summary>
     public string LastError { get; private set; } = "";
 
     public VirtualDisplayService()
@@ -47,7 +47,7 @@ public class VirtualDisplayService : IDisposable
     private static bool IsInvalidHandle(IntPtr h) => h == InvalidHandle || h == IntPtr.Zero;
 
     /// <summary>
-    /// 检查 Parsec VDD 驱动是否已安装
+    /// Check if Parsec VDD driver is installed
     /// </summary>
     private bool CheckDriverInstalled()
     {
@@ -57,7 +57,7 @@ public class VirtualDisplayService : IDisposable
             var devInfo = SetupDiGetClassDevsA(ref classGuid, null, IntPtr.Zero, DIGCF_PRESENT);
             if (IsInvalidHandle(devInfo))
             {
-                LastError = "SetupDiGetClassDevsA 返回无效句柄";
+                LastError = "SetupDiGetClassDevsA returned invalid handle";
                 return false;
             }
 
@@ -90,24 +90,24 @@ public class VirtualDisplayService : IDisposable
                                 uint cmResult = CM_Get_DevNode_Status(out devStatus, out problemNum, devInfoData.DevInst, 0);
                                 if (cmResult != 0)
                                 {
-                                    LastError = $"找到VDD硬件但CM_Get_DevNode_Status失败(0x{cmResult:X})";
+                                    LastError = $"Found VDD hardware but CM_Get_DevNode_Status failed (0x{cmResult:X})";
                                     return false;
                                 }
                                 if ((devStatus & DN_HAS_PROBLEM) != 0)
                                 {
-                                    LastError = $"VDD驱动存在问题(ProblemCode={problemNum})，可能需要重启或重新安装";
+                                    LastError = $"VDD driver has a problem (ProblemCode={problemNum}), may need restart or reinstall";
                                     return false;
                                 }
                                 if ((devStatus & (DN_DRIVER_LOADED | DN_STARTED)) != 0)
                                     return true;
                                 
-                                LastError = $"VDD设备状态异常(Status=0x{devStatus:X})";
+                                LastError = $"VDD device status abnormal (Status=0x{devStatus:X})";
                                 return false;
                             }
                         }
                     }
                 }
-                LastError = foundHardware ? "VDD硬件未找到匹配ID" : "未在系统中找到Parsec VDD驱动，请先安装";
+                LastError = foundHardware ? "VDD hardware matching ID not found" : "Parsec VDD driver not found in system, please install first";
             }
             finally
             {
@@ -116,19 +116,19 @@ public class VirtualDisplayService : IDisposable
         }
         catch (Exception ex)
         {
-            LastError = $"检查驱动异常: {ex.Message}";
+            LastError = $"Driver check exception: {ex.Message}";
         }
         return false;
     }
 
     /// <summary>
-    /// 创建虚拟显示器
+    /// Create virtual display
     /// </summary>
     public bool CreateVirtualDisplay()
     {
         if (!_isInstalled)
         {
-            LastError = $"VDD驱动未安装: {LastError}";
+            LastError = $"VDD driver not installed: {LastError}";
             return false;
         }
 
@@ -138,32 +138,32 @@ public class VirtualDisplayService : IDisposable
             if (IsInvalidHandle(_deviceHandle))
             {
                 int err = Marshal.GetLastWin32Error();
-                LastError = $"无法打开VDD设备句柄(Win32错误={err})，请确认以管理员身份运行";
+                LastError = $"Cannot open VDD device handle (Win32 error={err}), please ensure running as administrator";
                 return false;
             }
 
-            // 记录当前屏幕列表
+            // Record current screen list
             var beforeScreens = System.Windows.Forms.Screen.AllScreens.ToList();
 
-            // 添加虚拟显示器
+            // Add virtual display
             _displayIndex = VddIoControl(VDD_IOCTL_ADD, null, 0);
             if (_displayIndex < 0)
             {
                 int err = Marshal.GetLastWin32Error();
-                LastError = $"IOCTL_ADD失败(返回={_displayIndex}, Win32错误={err})";
+                LastError = $"IOCTL_ADD failed (returned={_displayIndex}, Win32 error={err})";
                 return false;
             }
 
             System.Diagnostics.Debug.WriteLine($"Virtual display added, index: {_displayIndex}");
 
-            // 启动保活线程（必须每 <100ms 调用一次 UPDATE）
+            // Start keep-alive thread (must call UPDATE every <100ms)
             _keepAliveCts = new CancellationTokenSource();
             _ = Task.Run(KeepAliveLoop, _keepAliveCts.Token);
 
-            // 强制切换为扩展模式（Windows 默认可能是复制模式）
+            // Force switch to extend mode (Windows default may be duplicate mode)
             ForceExtendMode();
 
-            // 等待虚拟显示器出现在屏幕列表中
+            // Wait for virtual display to appear in screen list
             var virtualScreen = WaitForVirtualScreen(beforeScreens, 5000);
             if (virtualScreen != null)
             {
@@ -172,7 +172,7 @@ public class VirtualDisplayService : IDisposable
                 return true;
             }
 
-            // 超时未找到，回退：使用默认分辨率
+            // Timeout, fallback: use default resolution
             System.Diagnostics.Debug.WriteLine("Virtual display not found in screen list, using default bounds.");
             VirtualScreenBounds = new System.Drawing.Rectangle(0, 0, 1920, 1080);
             return true;
@@ -185,24 +185,24 @@ public class VirtualDisplayService : IDisposable
     }
 
     /// <summary>
-    /// 强制将显示模式切换为扩展（而非复制）
+    /// Force display mode to extend (not duplicate)
     /// </summary>
     private void ForceExtendMode()
     {
         try
         {
-            // 使用 SetDisplayConfig API 强制扩展模式
+            // Use SetDisplayConfig API to force extend mode
             uint flags = SDC_APPLY | SDC_TOPOLOGY_EXTEND | SDC_USE_SUPPLIED_DISPLAY_CONFIG;
             long result = SetDisplayConfig(0, IntPtr.Zero, 0, IntPtr.Zero, flags);
             if (result != 0)
             {
-                // 如果带 SDC_USE_SUPPLIED_DISPLAY_CONFIG 失败，尝试不带此标志
+                // If it fails with SDC_USE_SUPPLIED_DISPLAY_CONFIG, try without this flag
                 flags = SDC_APPLY | SDC_TOPOLOGY_EXTEND;
                 result = SetDisplayConfig(0, IntPtr.Zero, 0, IntPtr.Zero, flags);
             }
             System.Diagnostics.Debug.WriteLine($"ForceExtendMode: SetDisplayConfig result={result}");
 
-            // 等待系统应用更改
+            // Wait for system to apply changes
             Thread.Sleep(500);
         }
         catch (Exception ex)
@@ -212,8 +212,8 @@ public class VirtualDisplayService : IDisposable
     }
 
     /// <summary>
-    /// 等待虚拟显示器出现在屏幕列表中
-    /// 使用 EnumDisplaySettingsEx 获取真实物理分辨率（不受 DPI 缩放影响）
+    /// Wait for virtual display to appear in screen list
+    /// Use EnumDisplaySettingsEx to get real physical resolution (unaffected by DPI scaling)
     /// </summary>
     private System.Windows.Forms.Screen? WaitForVirtualScreen(List<System.Windows.Forms.Screen> beforeScreens, int timeoutMs)
     {
@@ -232,10 +232,10 @@ public class VirtualDisplayService : IDisposable
 
                 if (isNew)
                 {
-                    // 保存设备名
+                    // Save device name
                     VirtualDeviceName = screen.DeviceName;
 
-                    // 使用 EnumDisplaySettingsEx 获取真实物理分辨率
+                    // Use EnumDisplaySettingsEx to get real physical resolution
                     var devMode = new DEVMODE();
                     devMode.dmSize = (short)Marshal.SizeOf<DEVMODE>();
 
@@ -266,7 +266,7 @@ public class VirtualDisplayService : IDisposable
         return null;
     }
 
-    // EnumDisplaySettingsEx 相关
+    // EnumDisplaySettingsEx related
     private const int ENUM_CURRENT_SETTINGS = -1;
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
@@ -322,7 +322,7 @@ public class VirtualDisplayService : IDisposable
     }
 
     /// <summary>
-    /// 移除虚拟显示器
+    /// Remove virtual display
     /// </summary>
     public void RemoveVirtualDisplay()
     {
@@ -346,7 +346,7 @@ public class VirtualDisplayService : IDisposable
 
         if (IsInvalidHandle(devInfo))
         {
-            LastError = $"SetupDiGetClassDevsA失败(Win32={Marshal.GetLastWin32Error()})";
+            LastError = $"SetupDiGetClassDevsA failed (Win32={Marshal.GetLastWin32Error()})";
             return InvalidHandle;
         }
 
@@ -360,38 +360,38 @@ public class VirtualDisplayService : IDisposable
             {
                 interfaceCount++;
                 uint detailSize = 0;
-                // 第一次调用获取需要的缓冲区大小
+                // First call to get required buffer size
                 SetupDiGetDeviceInterfaceDetailA(devInfo, ref devInterface, IntPtr.Zero, 0, ref detailSize, IntPtr.Zero);
                 int detailErr = Marshal.GetLastWin32Error();
                 if (detailSize == 0)
                 {
-                    LastError = $"SetupDiGetDeviceInterfaceDetailA获取大小失败(size=0, Win32={detailErr})";
+                    LastError = $"SetupDiGetDeviceInterfaceDetailA failed to get size (size=0, Win32={detailErr})";
                     continue;
                 }
 
                 var detailBuffer = Marshal.AllocHGlobal((int)detailSize);
                 try
                 {
-                    // cbSize: 32位=5, 64位=8
+                    // cbSize: 32-bit=5, 64-bit=8
                     int cbSize = IntPtr.Size == 8 ? 8 : 5;
                     Marshal.WriteInt32(detailBuffer, cbSize);
 
                     if (!SetupDiGetDeviceInterfaceDetailA(devInfo, ref devInterface, detailBuffer, detailSize, ref detailSize, IntPtr.Zero))
                     {
-                        LastError = $"SetupDiGetDeviceInterfaceDetailA失败(Win32={Marshal.GetLastWin32Error()})";
+                        LastError = $"SetupDiGetDeviceInterfaceDetailA failed (Win32={Marshal.GetLastWin32Error()})";
                         continue;
                     }
 
-                    // DevicePath 在 cbSize 之后开始，偏移量 = 4（DWORD的大小）
+                    // DevicePath starts after cbSize, offset = 4 (size of DWORD)
                     var devicePath = Marshal.PtrToStringAnsi(detailBuffer + 4);
 
                     if (string.IsNullOrEmpty(devicePath))
                     {
-                        LastError = "获取到的设备路径为空";
+                        LastError = "Retrieved device path is empty";
                         continue;
                     }
 
-                    LastError = $"尝试打开设备: {devicePath}";
+                    LastError = $"Attempting to open device: {devicePath}";
                     System.Diagnostics.Debug.WriteLine($"VDD device path: {devicePath}");
 
                     var handle = CreateFileA(devicePath,
@@ -404,7 +404,7 @@ public class VirtualDisplayService : IDisposable
                     int createErr = Marshal.GetLastWin32Error();
                     if (IsInvalidHandle(handle))
                     {
-                        LastError = $"CreateFileA失败(Win32={createErr}): {devicePath}";
+                        LastError = $"CreateFileA failed (Win32={createErr}): {devicePath}";
                         continue;
                     }
 
@@ -419,7 +419,7 @@ public class VirtualDisplayService : IDisposable
 
             if (interfaceCount == 0)
             {
-                LastError = "未找到VDD设备接口，驱动可能未正确安装或未启动";
+                LastError = "VDD device interface not found, driver may not be properly installed or started";
             }
         }
         finally
@@ -487,7 +487,7 @@ public class VirtualDisplayService : IDisposable
     private const uint DN_STARTED = 0x00000008;
     private const uint DN_HAS_PROBLEM = 0x00000400;
 
-    // SetDisplayConfig 标志
+    // SetDisplayConfig flags
     private const uint SDC_APPLY = 0x00000080;
     private const uint SDC_TOPOLOGY_EXTEND = 0x00000004;
     private const uint SDC_USE_SUPPLIED_DISPLAY_CONFIG = 0x00000020;

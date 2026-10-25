@@ -63,26 +63,26 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // 所有页面
+        // All pages
         homeView = findViewById(R.id.home_view)
         wifiView = findViewById(R.id.wifi_view)
         usbView = findViewById(R.id.usb_view)
         videoView = findViewById(R.id.video_view)
         btnDisconnect = findViewById(R.id.btn_disconnect)
 
-        // Wi-Fi 页面控件
+        // Wi-Fi Page Controls
         tvStatus = findViewById(R.id.tv_status)
         etIp = findViewById(R.id.et_ip)
         btnConnect = findViewById(R.id.btn_connect)
         spinner = findViewById(R.id.connecting_spinner)
 
-        // USB 页面控件
+        // USB Page Controls
         tvUsbStatus = findViewById(R.id.tv_usb_status)
         usbSpinner = findViewById(R.id.usb_spinner)
 
         VideoDecoderRenderer.setImageView(videoView!!)
 
-        // 主页按钮
+        // Home button
         findViewById<Button>(R.id.btn_wifi_mode)?.setOnClickListener {
             currentMode = "wifi"
             showWifiPage()
@@ -94,11 +94,11 @@ class MainActivity : AppCompatActivity() {
             showUsbPage()
         }
 
-        // Wi-Fi 页面按钮
+        // Wi-Fi Page buttons
         btnConnect?.setOnClickListener {
             val ip = etIp?.text?.toString()?.trim() ?: ""
             if (ip.isNotEmpty()) {
-                tvStatus?.text = "正在连接 $ip ..."
+                tvStatus?.text = "Connecting $ip ..."
                 streamService?.connectManual(ip)
             }
         }
@@ -108,9 +108,9 @@ class MainActivity : AppCompatActivity() {
             showHomePage()
         }
 
-        // USB 页面按钮
+        // USB Page buttons
         findViewById<Button>(R.id.btn_usb_connect)?.setOnClickListener {
-            tvUsbStatus?.text = "正在连接..."
+            tvUsbStatus?.text = "Connecting..."
             usbSpinner?.visibility = View.VISIBLE
             streamService?.connectUsb()
         }
@@ -119,7 +119,7 @@ class MainActivity : AppCompatActivity() {
             showHomePage()
         }
 
-        // 断开按钮
+        // Disconnect button
         btnDisconnect?.setOnClickListener {
             streamService?.disconnectAndRestart()
             showHomePage()
@@ -144,7 +144,7 @@ class MainActivity : AppCompatActivity() {
         usbView?.visibility = View.GONE
         videoView?.visibility = View.GONE
         btnDisconnect?.visibility = View.GONE
-        tvStatus?.text = "正在搜索电脑..."
+        tvStatus?.text = "Searching for computers..."
         spinner?.visibility = View.VISIBLE
         showSystemUI()
     }
@@ -171,11 +171,11 @@ class MainActivity : AppCompatActivity() {
             ConnectionState.CONNECTING -> {
                 if (currentMode == "wifi") {
                     wifiView?.visibility = View.VISIBLE
-                    tvStatus?.text = "正在连接..."
+                    tvStatus?.text = "Connecting..."
                     spinner?.visibility = View.VISIBLE
                 } else if (currentMode == "usb") {
                     usbView?.visibility = View.VISIBLE
-                    tvUsbStatus?.text = "正在连接..."
+                    tvUsbStatus?.text = "Connecting..."
                     usbSpinner?.visibility = View.VISIBLE
                 }
                 videoView?.visibility = View.GONE
@@ -196,11 +196,11 @@ class MainActivity : AppCompatActivity() {
                 window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                 if (currentMode == "wifi") {
                     wifiView?.visibility = View.VISIBLE
-                    tvStatus?.text = "连接断开，正在重新搜索..."
+                    tvStatus?.text = "Connection lost, searching again..."
                     spinner?.visibility = View.VISIBLE
                 } else if (currentMode == "usb") {
                     usbView?.visibility = View.VISIBLE
-                    tvUsbStatus?.text = "连接失败，请重试"
+                    tvUsbStatus?.text = "Connection failed, please try again"
                     usbSpinner?.visibility = View.GONE
                 }
                 videoView?.visibility = View.GONE
@@ -212,11 +212,11 @@ class MainActivity : AppCompatActivity() {
                 window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                 if (currentMode == "wifi") {
                     wifiView?.visibility = View.VISIBLE
-                    tvStatus?.text = "连接失败，请重试"
+                    tvStatus?.text = "Connection failed, please try again"
                     spinner?.visibility = View.GONE
                 } else if (currentMode == "usb") {
                     usbView?.visibility = View.VISIBLE
-                    tvUsbStatus?.text = "连接失败，请重试"
+                    tvUsbStatus?.text = "Connection failed, please try again"
                     usbSpinner?.visibility = View.GONE
                 }
                 videoView?.visibility = View.GONE

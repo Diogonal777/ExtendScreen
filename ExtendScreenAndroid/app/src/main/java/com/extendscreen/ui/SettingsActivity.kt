@@ -16,7 +16,7 @@ import com.extendscreen.R
 import com.extendscreen.service.StreamService
 
 /**
- * 设置页 Activity — 分辨率/帧率选择、查看连接状态
+ * Settings Page Activity — Resolution/frame rate selection, connection status viewing
  */
 class SettingsActivity : AppCompatActivity() {
 
@@ -51,15 +51,15 @@ class SettingsActivity : AppCompatActivity() {
         tvStatus = findViewById(R.id.tv_connection_status)
         btnDisconnect = findViewById(R.id.btn_disconnect)
 
-        // 分辨率选项
+        // Resolution Options
         val resolutionAdapter = ArrayAdapter(
             this, android.R.layout.simple_spinner_item,
-            arrayOf("自适应", "1280x720", "1920x1080", "2560x1440")
+            arrayOf("Adaptive", "1280x720", "1920x1080", "2560x1440")
         )
         resolutionAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinnerResolution.adapter = resolutionAdapter
 
-        // 帧率选项
+        // Frame Rate Options
         val fpsAdapter = ArrayAdapter(
             this, android.R.layout.simple_spinner_item,
             arrayOf("30 fps", "60 fps")
@@ -72,7 +72,7 @@ class SettingsActivity : AppCompatActivity() {
             updateStatus()
         }
 
-        // 绑定服务
+        // Binding Service
         bindService(
             Intent(this, StreamService::class.java),
             serviceConnection,
@@ -84,15 +84,15 @@ class SettingsActivity : AppCompatActivity() {
         val status = streamService?.connectionState
         when (status) {
             ConnectionState.CONNECTED -> {
-                tvStatus.text = "已连接 — ${streamService?.connectedServer?.hostname ?: "电脑"}"
+                tvStatus.text = "Connected — ${streamService?.connectedServer?.hostname ?: "computer"}"
                 btnDisconnect.isEnabled = true
             }
             ConnectionState.CONNECTING -> {
-                tvStatus.text = "正在连接..."
+                tvStatus.text = "Connecting..."
                 btnDisconnect.isEnabled = false
             }
             else -> {
-                tvStatus.text = "未连接"
+                tvStatus.text = "Not connected"
                 btnDisconnect.isEnabled = false
             }
         }

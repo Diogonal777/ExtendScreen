@@ -1,14 +1,14 @@
 namespace ExtendScreenServer.Models;
 
 /// <summary>
-/// 服务端配置
+/// Server configuration
 /// </summary>
 public class ServerConfig
 {
     public int DiscoveryPort { get; set; } = 12345;
     public int VideoStreamPort { get; set; } = 12348;
     public int InputEventPort { get; set; } = 12347;
-    // USB/ADB 转发使用的本地端口（避免与监听端口冲突）
+    // Local ports used for USB/ADB forwarding (to avoid conflict with listening ports)
     public int UsbForwardVideoPort { get; set; } = 22348;
     public int UsbForwardInputPort { get; set; } = 22347;
     public int ScreenWidth { get; set; } = 1920;

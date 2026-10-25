@@ -11,7 +11,7 @@ public partial class App : System.Windows.Application
     {
         base.OnStartup(e);
 
-        // 初始化系统托盘图标
+        // Initialize system tray icon
         _trayIcon = new System.Windows.Forms.NotifyIcon
         {
             Icon = System.Drawing.SystemIcons.Application,
@@ -20,19 +20,19 @@ public partial class App : System.Windows.Application
         };
 
         var contextMenu = new System.Windows.Forms.ContextMenuStrip();
-        contextMenu.Items.Add("设置", null, (s, args) => ShowMainWindow());
+        contextMenu.Items.Add("Settings", null, (s, args) => ShowMainWindow());
         contextMenu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
-        contextMenu.Items.Add("退出", null, (s, args) => Shutdown());
+        contextMenu.Items.Add("Exit", null, (s, args) => Shutdown());
         _trayIcon.ContextMenuStrip = contextMenu;
         _trayIcon.DoubleClick += (s, args) => ShowMainWindow();
 
-        // 创建主窗口，首次启动时显示设置面板
+        // Create main window, show settings panel on first startup
         _mainWindow = new MainWindow();
         _mainWindow.Show();
 
-        // 显示气泡提示，告知用户程序在托盘运行
+        // Show balloon tip to inform the user the program is running in the tray
         _trayIcon.ShowBalloonTip(3000, "ExtendScreen",
-            "程序已在系统托盘中运行。等待设备连接...",
+            "The program is running in the system tray. Waiting for device connection...",
             System.Windows.Forms.ToolTipIcon.Info);
     }
 

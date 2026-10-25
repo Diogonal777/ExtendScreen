@@ -6,7 +6,7 @@ using ExtendScreenServer.Models;
 namespace ExtendScreenServer.Services;
 
 /// <summary>
-/// UDP广播服务发现 — 让安卓端自动发现电脑
+/// UDP broadcast service discovery — allows Android devices to automatically discover the PC
 /// </summary>
 public class DiscoveryService : IDisposable
 {
@@ -29,9 +29,9 @@ public class DiscoveryService : IDisposable
         _udpClient = new UdpClient();
         _udpClient.EnableBroadcast = true;
 
-        // 广播线程
+        // Broadcast thread
         _ = Task.Run(BroadcastLoop, _cts.Token);
-        // 监听回复线程
+        // Listen for responses thread
         _ = Task.Run(ListenForResponses, _cts.Token);
     }
 
@@ -60,7 +60,7 @@ public class DiscoveryService : IDisposable
 
     private async Task ListenForResponses()
     {
-        // 监听安卓端的广播和设备信息
+        // Listen for Android broadcasts and device info
         var listen = new UdpClient(new IPEndPoint(IPAddress.Any, _config.DiscoveryPort + 1));
 
         while (!_cts!.IsCancellationRequested)
@@ -70,11 +70,11 @@ public class DiscoveryService : IDisposable
                 var result = await listen.ReceiveAsync(_cts.Token);
                 var data = Encoding.UTF8.GetString(result.Buffer).Trim();
 
-                // 安卓端广播 "ExtendScreenClient" — 自动发现
+                // Android broadcasts "ExtendScreenClient" — auto-discovery
                 if (data == "ExtendScreenClient")
                 {
                     System.Diagnostics.Debug.WriteLine($"Received client broadcast from {result.RemoteEndPoint.Address}");
-                    // 回复服务器信息
+                    // Reply with server info
                     var response = Encoding.UTF8.GetBytes(_config.BroadcastMessage);
                     var clientEP = new IPEndPoint(result.RemoteEndPoint.Address, _config.DiscoveryPort);
                     try
@@ -85,7 +85,7 @@ public class DiscoveryService : IDisposable
                     continue;
                 }
 
-                // 解析安卓端发来的设备信息：格式 "DEVICE_INFO|name|width|height"
+                // Parse device info from Android: format "DEVICE_INFO|name|width|height"
                 if (data.StartsWith("DEVICE_INFO|"))
                 {
                     var parts = data.Split('|');

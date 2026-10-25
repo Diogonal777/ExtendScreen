@@ -29,7 +29,7 @@ public class MainViewModel : INotifyPropertyChanged
 
     public bool IsConnected => ConnectedDevice != null;
 
-    private string _statusText = "未连接";
+    private string _statusText = "Not connected";
     public string StatusText
     {
         get => _statusText;
@@ -71,14 +71,14 @@ public class MainViewModel : INotifyPropertyChanged
         set { _isExtending = value; OnPropertyChanged(); }
     }
 
-    private string _displayModeText = "投屏模式";
+    private string _displayModeText = "Mirror mode";
     public string DisplayModeText
     {
         get => _displayModeText;
         set { _displayModeText = value; OnPropertyChanged(); }
     }
 
-    // 模式相关属性
+    // Mode-related properties
     private bool _isWifiMode = true;
     public bool IsWifiMode
     {
@@ -86,10 +86,10 @@ public class MainViewModel : INotifyPropertyChanged
         set { _isWifiMode = value; OnPropertyChanged(); OnPropertyChanged(nameof(ModeLabelText)); OnPropertyChanged(nameof(ModeDescription)); }
     }
 
-    public string ModeLabelText => IsWifiMode ? "Wi-Fi 模式" : "USB 模式";
+    public string ModeLabelText => IsWifiMode ? "Wi-Fi Mode" : "USB Mode";
     public string ModeDescription => IsWifiMode
-        ? "手机和电脑在同一局域网，手机端自动发现电脑并连接"
-        : "通过 ADB 端口转发连接，支持 USB 线或无线调试";
+        ? "Phone and PC are on the same LAN; the phone will automatically discover and connect to the PC"
+        : "Connect via ADB port forwarding, supports USB cable or wireless debugging";
 
     private bool _isServiceStarted;
     public bool IsServiceStarted
@@ -98,10 +98,10 @@ public class MainViewModel : INotifyPropertyChanged
         set { _isServiceStarted = value; OnPropertyChanged(); }
     }
 
-    public string[] ResolutionOptions { get; } = { "自适应", "1280x720", "1920x1080", "2560x1440" };
+    public string[] ResolutionOptions { get; } = { "Auto", "1280x720", "1920x1080", "2560x1440" };
     public string[] FpsOptions { get; } = { "30 fps", "60 fps" };
 
-    private string _localIpAddress = "获取中...";
+    private string _localIpAddress = "Getting...";
     public string LocalIpAddress
     {
         get => _localIpAddress;
@@ -123,7 +123,7 @@ public class MainViewModel : INotifyPropertyChanged
 
         if (!_virtualDisplayService.IsDriverInstalled)
         {
-            DisplayModeText = "投屏模式（未安装虚拟显示驱动）";
+            DisplayModeText = "Mirror mode (virtual display driver not installed)";
         }
     }
 
@@ -172,7 +172,7 @@ public class MainViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    /// 选择 Wi-Fi 模式并启动服务
+    /// Select Wi-Fi mode and start services
     /// </summary>
     public async Task StartWifiModeAsync()
     {
@@ -182,7 +182,7 @@ public class MainViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    /// 选择 USB 模式并启动服务
+    /// Select USB mode and start services
     /// </summary>
     public async Task StartUsbModeAsync()
     {
@@ -190,7 +190,7 @@ public class MainViewModel : INotifyPropertyChanged
         ConnectionType = "USB";
         await StartServicesAsync();
 
-        // USB 模式自动设置端口转发（在后台线程执行，避免卡死 UI）
+        // USB mode automatically sets up port forwarding (run on background thread to avoid UI freeze)
         await SetupUsbForwardAsync();
     }
 
@@ -200,19 +200,19 @@ public class MainViewModel : INotifyPropertyChanged
 
         try
         {
-            StatusText = "正在启动服务...";
+            StatusText = "Starting services...";
 
             int captureWidth, captureHeight, captureX, captureY;
 
             if (_virtualDisplayService.IsDriverInstalled)
             {
-                StatusText = "正在创建虚拟显示器...";
+                StatusText = "Creating virtual display...";
                 bool created = await Task.Run(() => _virtualDisplayService.CreateVirtualDisplay());
 
                 if (created && _virtualDisplayService.IsVirtualDisplayCreated)
                 {
                     var allScreens = System.Windows.Forms.Screen.AllScreens;
-                    System.Diagnostics.Debug.WriteLine($"=== 所有屏幕 ({allScreens.Length}) ===");
+                    System.Diagnostics.Debug.WriteLine($"=== All screens ({allScreens.Length}) ===");
                     foreach (var s in allScreens)
                     {
                         System.Diagnostics.Debug.WriteLine($"  {s.DeviceName}: {s.Bounds} Primary={s.Primary}");
@@ -231,8 +231,8 @@ public class MainViewModel : INotifyPropertyChanged
                     InputInjector.SetScreenOffset(captureX, captureY);
 
                     IsExtending = true;
-                    DisplayModeText = $"扩展模式 {captureWidth}x{captureHeight} @({captureX},{captureY})";
-                    StatusText = $"虚拟显示器已创建 {captureWidth}x{captureHeight} @({captureX},{captureY})";
+                    DisplayModeText = $"Extend mode {captureWidth}x{captureHeight} @({captureX},{captureY})";
+                    StatusText = $"Virtual display created {captureWidth}x{captureHeight} @({captureX},{captureY})";
                 }
                 else
                 {
@@ -246,7 +246,7 @@ public class MainViewModel : INotifyPropertyChanged
                     _config.ScreenHeight = captureHeight;
                     InputInjector.SetScreenBounds(captureWidth, captureHeight);
 
-                    DisplayModeText = $"投屏模式（创建失败: {_virtualDisplayService.LastError}）";
+                    DisplayModeText = $"Mirror mode (creation failed: {_virtualDisplayService.LastError})";
                 }
             }
             else
@@ -261,7 +261,7 @@ public class MainViewModel : INotifyPropertyChanged
                 _config.ScreenHeight = captureHeight;
                 InputInjector.SetScreenBounds(captureWidth, captureHeight);
 
-                DisplayModeText = $"投屏模式（{_virtualDisplayService.LastError}）";
+                DisplayModeText = $"Mirror mode ({_virtualDisplayService.LastError})";
             }
 
             _streamingService.Start(captureWidth, captureHeight, captureX, captureY, _virtualDisplayService.VirtualDeviceName);
@@ -269,17 +269,17 @@ public class MainViewModel : INotifyPropertyChanged
             {
                 if (connected)
                 {
-                    var mode = IsExtending ? "扩展" : "投屏";
-                    StatusText = $"已连接 | {mode}模式 | {_config.ScreenWidth}x{_config.ScreenHeight} @{_config.TargetFps}fps";
+                    var mode = IsExtending ? "Extend" : "Mirror";
+                    StatusText = $"Connected | {mode} mode | {_config.ScreenWidth}x{_config.ScreenHeight} @{_config.TargetFps}fps";
                 }
                 else
                 {
-                    StatusText = "视频连接已断开，等待重连...";
+                    StatusText = "Video connection disconnected, waiting for reconnection...";
                     ConnectedDevice = null;
                 }
             };
 
-            // Wi-Fi 模式才启动 UDP 发现服务
+            // Only start UDP discovery service in Wi-Fi mode
             if (IsWifiMode)
             {
                 _discoveryService.Start();
@@ -290,20 +290,20 @@ public class MainViewModel : INotifyPropertyChanged
             _isServiceStarted = true;
             IsServiceStarted = true;
 
-            var modeText = IsExtending ? "扩展" : "投屏";
+            var modeText = IsExtending ? "Extend" : "Mirror";
             var connMode = IsWifiMode ? "Wi-Fi" : "USB";
             StatusText = IsWifiMode
-                ? $"等待设备连接... [{modeText}模式] IP: {LocalIpAddress}"
-                : $"USB 转发已启动，请在手机端点击 USB 连接 [{modeText}模式]";
+                ? $"Waiting for device connection... [{modeText} mode] IP: {LocalIpAddress}"
+                : $"USB forwarding started, please click USB connect on the phone [{modeText} mode]";
         }
         catch (Exception ex)
         {
-            StatusText = $"启动失败: {ex.Message}";
+            StatusText = $"Startup failed: {ex.Message}";
         }
     }
 
     /// <summary>
-    /// 停止所有服务，返回模式选择
+    /// Stop all services, return to mode selection
     /// </summary>
     public void StopServices()
     {
@@ -319,38 +319,38 @@ public class MainViewModel : INotifyPropertyChanged
         _isServiceStarted = false;
         IsServiceStarted = false;
         ConnectedDevice = null;
-        StatusText = "未连接";
+        StatusText = "Not connected";
     }
 
     private async Task SetupUsbForwardAsync()
     {
-        StatusText = "正在设置 ADB 转发...";
+        StatusText = "Setting up ADB forwarding...";
 
         try
         {
             var adbPath = await Task.Run(() => FindAdbPath());
             if (adbPath == null)
             {
-                StatusText = "未找到 adb，请安装 Android SDK Platform Tools";
+                StatusText = "adb not found, please install Android SDK Platform Tools";
                 return;
             }
 
-            // 先启动 adb server
+            // Start adb server first
             await Task.Run(() => RunAdbCommand(adbPath, "start-server"));
 
-            // 检查设备连接
+            // Check device connection
             var devicesOutput = await Task.Run(() => RunAdbCommandWithOutput(adbPath, "devices"));
 
             if (string.IsNullOrEmpty(devicesOutput))
             {
-                StatusText = "ADB 命令执行失败，请检查 ADB 是否正常";
+                StatusText = "ADB command execution failed, please check if ADB is working properly";
                 return;
             }
 
-            // 检查是否有 offline 设备，尝试重连
+            // Check for offline devices, attempt reconnect
             if (devicesOutput.Contains("\toffline"))
             {
-                StatusText = "检测到设备离线，正在尝试重连...";
+                StatusText = "Device offline detected, attempting to reconnect...";
                 await Task.Run(() =>
                 {
                     RunAdbCommand(adbPath, "reconnect");
@@ -361,13 +361,13 @@ public class MainViewModel : INotifyPropertyChanged
 
                 if (!devicesOutput.Contains("\tdevice"))
                 {
-                    StatusText = "设备离线，请在手机上重新授权 USB 调试，或重新配对无线调试";
+                    StatusText = "Device offline, please re-authorize USB debugging on the phone, or re-pair wireless debugging";
                     return;
                 }
             }
             else if (!devicesOutput.Contains("\tdevice"))
             {
-                StatusText = "未检测到已连接的设备，请通过 USB 线或无线调试连接设备";
+                StatusText = "No connected device detected, please connect a device via USB cable or wireless debugging";
                 return;
             }
 
@@ -378,7 +378,7 @@ public class MainViewModel : INotifyPropertyChanged
 
             await Task.Run(() =>
             {
-                // 使用 adb reverse：设备本地端口 → PC 端口（设备主动连 PC）
+                // Use adb reverse: device local port → PC port (device actively connects to PC)
                 RunAdbCommand(adbPath, $"reverse tcp:{fwdVideoPort} tcp:{videoPort}");
                 RunAdbCommand(adbPath, $"reverse tcp:{fwdInputPort} tcp:{inputPort}");
             });
@@ -386,12 +386,12 @@ public class MainViewModel : INotifyPropertyChanged
             _streamingService.AllowNewConnections();
             IsUsbForwarding = true;
 
-            var modeText = IsExtending ? "扩展" : "投屏";
-            StatusText = $"ADB 转发已启动，请在手机端点击 USB 连接 [{modeText}模式]";
+            var modeText = IsExtending ? "Extend" : "Mirror";
+            StatusText = $"ADB forwarding started, please click USB connect on the phone [{modeText} mode]";
         }
         catch (Exception ex)
         {
-            StatusText = $"ADB 转发失败: {ex.Message}";
+            StatusText = $"ADB forwarding failed: {ex.Message}";
         }
     }
 
@@ -403,7 +403,7 @@ public class MainViewModel : INotifyPropertyChanged
             device.IsConnected = true;
             ConnectedDevice = device;
             ConnectionType = device.ConnectionType == Models.ConnectionType.USB ? "USB" : "Wi-Fi";
-            StatusText = $"已连接: {device.DeviceName} | {_config.ScreenWidth}x{_config.ScreenHeight} @{_config.TargetFps}fps";
+            StatusText = $"Connected: {device.DeviceName} | {_config.ScreenWidth}x{_config.ScreenHeight} @{_config.TargetFps}fps";
         }
     }
 
@@ -429,11 +429,11 @@ public class MainViewModel : INotifyPropertyChanged
     {
         _streamingService.DisconnectClient();
         ConnectedDevice = null;
-        var modeText = IsExtending ? "扩展" : "投屏";
+        var modeText = IsExtending ? "Extend" : "Mirror";
         var connMode = IsWifiMode ? "Wi-Fi" : "USB";
         StatusText = IsWifiMode
-            ? $"已断开，等待重新连接... [{modeText}模式] IP: {LocalIpAddress}"
-            : $"已断开，等待重新连接... [USB模式]";
+            ? $"Disconnected, waiting for reconnection... [{modeText} mode] IP: {LocalIpAddress}"
+            : $"Disconnected, waiting for reconnection... [USB mode]";
     }
 
     public void StopUsbForward()
@@ -494,13 +494,13 @@ public class MainViewModel : INotifyPropertyChanged
             CreateNoWindow = true
         };
         using var proc = Process.Start(psi);
-        proc?.WaitForExit(5000); // 5秒超时
+        proc?.WaitForExit(5000); // 5 second timeout
         if (proc != null && !proc.HasExited)
             proc.Kill();
     }
 
     /// <summary>
-    /// 执行 ADB 命令并返回输出（先读输出再等待退出，避免死锁）
+    /// Execute ADB command and return output (read output first, then wait for exit to avoid deadlock)
     /// </summary>
     private static string RunAdbCommandWithOutput(string adbPath, string args)
     {
@@ -518,13 +518,13 @@ public class MainViewModel : INotifyPropertyChanged
             using var proc = Process.Start(psi);
             if (proc == null) return "";
 
-            // 先读取输出，再等待退出（避免死锁）
+            // Read output first, then wait for exit (avoid deadlock)
             var output = proc.StandardOutput.ReadToEnd();
             proc.WaitForExit(8000);
             if (!proc.HasExited)
             {
                 proc.Kill();
-                return output; // 返回已读取的部分输出
+                return output; // Return the partial output already read
             }
             return output;
         }

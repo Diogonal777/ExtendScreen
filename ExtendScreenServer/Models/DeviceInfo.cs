@@ -1,7 +1,7 @@
 namespace ExtendScreenServer.Models;
 
 /// <summary>
-/// 连接的安卓设备信息
+/// Information about connected Android device
 /// </summary>
 public class DeviceInfo
 {

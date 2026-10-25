@@ -4,7 +4,7 @@ using ExtendScreenServer.Models;
 namespace ExtendScreenServer.Services;
 
 /// <summary>
-/// 使用 Windows SendInput API 将触控事件注入系统
+/// Use Windows SendInput API to inject touch events into the system
 /// </summary>
 public static class InputInjector
 {
@@ -19,8 +19,8 @@ public static class InputInjector
 
     private static int _screenWidth = 1920;
     private static int _screenHeight = 1080;
-    private static int _offsetX = 0; // 虚拟显示器在虚拟桌面中的 X 偏移
-    private static int _offsetY = 0; // 虚拟显示器在虚拟桌面中的 Y 偏移
+    private static int _offsetX = 0; // X offset of virtual display in virtual desktop
+    private static int _offsetY = 0; // Y offset of virtual display in virtual desktop
 
     public static void SetScreenBounds(int width, int height)
     {
@@ -29,7 +29,7 @@ public static class InputInjector
     }
 
     /// <summary>
-    /// 设置虚拟显示器的偏移量（用于扩展屏幕模式）
+    /// Set the offset of the virtual display (for extend screen mode)
     /// </summary>
     public static void SetScreenOffset(int offsetX, int offsetY)
     {
@@ -39,11 +39,11 @@ public static class InputInjector
 
     public static void Inject(InputEvent e)
     {
-        // 归一化坐标 -> 虚拟显示器内坐标
+        // Normalized coordinates -> virtual display coordinates
         var localX = (int)(e.X * _screenWidth);
         var localY = (int)(e.Y * _screenHeight);
 
-        // 加上虚拟显示器在虚拟桌面中的偏移
+        // Add the virtual display offset in the virtual desktop
         var screenX = localX + _offsetX;
         var screenY = localY + _offsetY;
 
@@ -73,8 +73,8 @@ public static class InputInjector
             _ => MOUSEEVENTF.MOVE
         };
 
-        // MOUSEEVENTF.ABSOLUTE 坐标需要映射到整个虚拟桌面
-        // 获取虚拟桌面总尺寸
+        // MOUSEEVENTF.ABSOLUTE coordinates need to be mapped to the entire virtual desktop
+        // Get total virtual desktop size
         var virtualDesktopWidth = GetSystemMetrics(78); // SM_CXVIRTUALSCREEN
         var virtualDesktopHeight = GetSystemMetrics(79); // SM_CYVIRTUALSCREEN
         var virtualDesktopX = GetSystemMetrics(76); // SM_XVIRTUALSCREEN
@@ -83,7 +83,7 @@ public static class InputInjector
         var inputs = new INPUT[1];
         inputs[0].type = INPUT_MOUSE;
         inputs[0].u.mi.dwFlags = mouseEvent | MOUSEEVENTF.ABSOLUTE;
-        // 将屏幕坐标转换为 0-65535 的绝对坐标
+        // Convert screen coordinates to 0-65535 absolute coordinates
         inputs[0].u.mi.dx = (x - virtualDesktopX) * 65535 / virtualDesktopWidth;
         inputs[0].u.mi.dy = (y - virtualDesktopY) * 65535 / virtualDesktopHeight;
 

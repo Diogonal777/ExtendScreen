@@ -7,7 +7,7 @@ import java.io.OutputStream
 import java.net.Socket
 
 /**
- * TCP 触控输入发送端：将安卓触摸事件发送到电脑
+ * TCP Touch Input Sender: Send Android touch events to a PC
  */
 class InputSender {
 
@@ -31,7 +31,7 @@ class InputSender {
                 isConnected = true
                 Log.d(TAG, "Input sender connected")
 
-                // 发送队列中的事件
+                // Events in the send queue
                 while (isConnected && isActive) {
                     val data = sendQueue.poll()
                     if (data != null && outputStream != null) {
@@ -43,7 +43,7 @@ class InputSender {
                             break
                         }
                     } else {
-                        delay(5) // 避免忙等
+                        delay(5) // Avoid busy-waiting
                     }
                 }
             } catch (e: Exception) {

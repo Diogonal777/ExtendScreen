@@ -44,16 +44,16 @@ class StreamService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        startForeground(NOTIFICATION_ID, createNotification("等待连接..."),
+        startForeground(NOTIFICATION_ID, createNotification("Waiting for connection..."),
             ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
-        // 不再自动连接，等待用户选择模式
+        // No longer connecting automatically; waiting for the user to select a mode.
         return START_STICKY
     }
 
     override fun onBind(intent: Intent?): IBinder = binder
 
     /**
-     * Wi-Fi 模式：开始搜索电脑
+     * Wi-Fi mode: Starting search for computers
      */
     fun startWifiDiscovery() {
         manualDisconnect = false
@@ -70,7 +70,7 @@ class StreamService : Service() {
     }
 
     /**
-     * 停止搜索
+     * Stop searching
      */
     fun stopDiscovery() {
         discoveryClient.stop()
@@ -95,7 +95,7 @@ class StreamService : Service() {
         inputSender.disconnect()
         updateState(ConnectionState.CONNECTING)
 
-        // USB/ADB 模式：通过 ADB forward 连接，使用转发端口（避免与电脑端监听端口冲突）
+        // USB/ADB mode: Connect via ADB forward, using a forwarded port (to avoid conflicts with ports already being listened on by the computer).
         val server = ServerInfo(ipAddress = "127.0.0.1", videoPort = 22348, inputPort = 22347, hostname = "USB")
         connectedServer = server
         connectToServer(server)
@@ -105,7 +105,7 @@ class StreamService : Service() {
         videoClient.onConnected = {
             discoveryClient.stop()
             updateState(ConnectionState.CONNECTED)
-            startForeground(NOTIFICATION_ID, createNotification("已连接"),
+            startForeground(NOTIFICATION_ID, createNotification("Connected"),
                 ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
             inputSender.connect(server, scope)
         }
@@ -116,9 +116,9 @@ class StreamService : Service() {
                 updateState(ConnectionState.DISCONNECTED)
             } else {
                 updateState(ConnectionState.DISCONNECTED)
-                // 意外断开时，根据当前模式重连
+                // Reconnect based on the current mode in the event of an unexpected disconnection
                 if (server.hostname == "USB") {
-                    // USB 模式不自动重连
+                    // USB mode does not automatically reconnect
                 } else {
                     startWifiDiscovery()
                 }
@@ -170,7 +170,7 @@ class StreamService : Service() {
             CHANNEL_ID,
             "ExtendScreen",
             NotificationManager.IMPORTANCE_LOW
-        ).apply { description = "屏幕扩展服务" }
+        ).apply { description = "Screen Extension Service" }
         val manager = getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(channel)
     }

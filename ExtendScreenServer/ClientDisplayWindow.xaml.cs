@@ -7,7 +7,7 @@ using System.Windows.Media.Imaging;
 namespace ExtendScreenServer;
 
 /// <summary>
-/// 客户端视频显示窗口 — 接收服务端画面并显示，发送鼠标输入
+/// Client video display window — receives and displays server video, sends mouse input
 /// </summary>
 public partial class ClientDisplayWindow : Window
 {
@@ -40,7 +40,7 @@ public partial class ClientDisplayWindow : Window
         _videoStream = _videoClient.GetStream();
         _inputStream = _inputClient.GetStream();
 
-        StatusText.Text = $"已连接 {host}";
+        StatusText.Text = $"Connected {host}";
 
         _ = Task.Run(ReceiveLoop, _cts.Token);
     }
@@ -78,7 +78,7 @@ public partial class ClientDisplayWindow : Window
         {
             Dispatcher.Invoke(() =>
             {
-                StatusText.Text = "连接已断开";
+                StatusText.Text = "Connection disconnected";
                 StatusText.Foreground = System.Windows.Media.Brushes.Red;
             });
         }
@@ -96,7 +96,7 @@ public partial class ClientDisplayWindow : Window
         return true;
     }
 
-    // 鼠标事件 → 发送到服务端
+    // Mouse events → send to server
     private void VideoImage_MouseDown(object sender, MouseButtonEventArgs e)
     {
         _isMouseDown = true;

@@ -8,7 +8,7 @@ import java.io.InputStream
 import java.net.Socket
 
 /**
- * TCP 视频流客户端：接收 JPEG 帧并在 IO 线程解码
+ * TCP Video Stream Client: Receives JPEG frames and decodes them on an I/O thread
  */
 class VideoStreamClient {
 
@@ -24,7 +24,7 @@ class VideoStreamClient {
     val isConnecting: Boolean get() = _isConnecting
     private var job: Job? = null
 
-    // 复用帧缓冲区，减少 GC 压力
+    // Reuse frame buffers to reduce GC pressure
     private var frameBuffer = ByteArray(MAX_FRAME_SIZE)
 
     var onConnected: (() -> Unit)? = null
@@ -65,7 +65,7 @@ class VideoStreamClient {
 
         while (isConnected && isActive()) {
             try {
-                // 读取 4 字节长度头
+                // Read a 4-byte length header
                 if (!readFully(stream, lengthBuffer, 4)) break
 
                 val frameLength = ((lengthBuffer[0].toInt() and 0xFF) shl 24) or
@@ -78,15 +78,15 @@ class VideoStreamClient {
                     continue
                 }
 
-                // 扩容缓冲区（如果需要）
+                // Expand the buffer (if necessary)
                 if (frameLength > frameBuffer.size) {
                     frameBuffer = ByteArray(frameLength)
                 }
 
-                // 读取帧数据到复用缓冲区
+                // Read frame data into the multiplexing buffer
                 if (!readFully(stream, frameBuffer, frameLength)) break
 
-                // 在 IO 线程直接解码并渲染（renderFrame 内部会 post 到主线程设置 Bitmap）
+                // Decoding and rendering are performed directly on the IO thread (within `renderFrame`, a task is posted to the main thread to set the `Bitmap`).
                 VideoDecoderRenderer.renderFrame(frameBuffer, 0, frameLength)
 
             } catch (e: java.net.SocketTimeoutException) {
