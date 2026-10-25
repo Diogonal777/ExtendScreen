@@ -6,6 +6,7 @@ ExtendScreenAndroid/local.properties
 ExtendScreenAndroid/adb.exe
 ExtendScreenAndroid/debug.keystore
 ExtendScreenAndroid/app/release/
+release_key
 *.apk
 *.ap_
 *.dex
@@ -18,6 +19,8 @@ ExtendScreenAndroid/app/release/
 
 # === Construction artifacts ===
 output/
+output_single/
+*.exe
 
 # === Temporary tools ===
 IconGen/

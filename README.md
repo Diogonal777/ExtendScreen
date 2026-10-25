@@ -69,7 +69,7 @@ The APK will be at `app/build/outputs/apk/debug/`
 
 ```bash
 cd ExtendScreenServer
-dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true -o output
+dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true -o output_single
 ```
 
 ### Tech Stack
@@ -81,6 +81,10 @@ dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=
 ## License
 
 MIT
+
+---
+
+*This is a fork of the original repository: https://github.com/tdtudo/ExtendScreen/
 
 ---
 
@@ -149,14 +153,14 @@ APK-файл будет находиться в `app/build/outputs/apk/debug/`
 
 ```bash
 cd ExtendScreenServer
-dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true -o output
+dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true -o output_single
 ```
 
 ### Технологический стек
 
 - **Android**: Kotlin, аппаратное декодирование MediaCodec, рендеринг SurfaceView
 - **Windows**: C# / WPF, .NET 7, захват экрана GDI+, TCP-связь
-- **Связь**: TCP Socket, перенаправление портов ADB, потоковая передача JPEG-кадров
+- **Сеть**: TCP Socket, перенаправление портов ADB, потоковая передача JPEG-кадров
 
 ## Лицензия
 
@@ -164,4 +168,4 @@ MIT
 
 ---
 
-*Это перевод оригинального репозитория: https://github.com/tdtudo/ExtendScreen/*
+*Это форк оригинального репозитория: https://github.com/tdtudo/ExtendScreen/*

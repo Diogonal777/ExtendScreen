@@ -11,10 +11,15 @@ public partial class App : System.Windows.Application
     {
         base.OnStartup(e);
 
+    var processPath = Environment.ProcessPath;
+    var appIcon = !string.IsNullOrEmpty(processPath) 
+        ? System.Drawing.Icon.ExtractAssociatedIcon(processPath) 
+        : System.Drawing.SystemIcons.Application;
+
         // Initialize system tray icon
         _trayIcon = new System.Windows.Forms.NotifyIcon
         {
-            Icon = System.Drawing.SystemIcons.Application,
+            Icon = appIcon,
             Visible = true,
             Text = "ExtendScreen Server"
         };
